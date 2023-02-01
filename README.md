@@ -18,6 +18,8 @@
 
 ## Copy built content into client folder
 
+`cd ..`
+
 `npm run preserve`
 
 `cp -r front-end/build/* client`

@@ -8,5 +8,6 @@ import { LtiMiddleware } from './lti.middleware';
 export class LtiModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(LtiMiddleware).forRoutes('lti');
+    consumer.apply(LtiMiddleware).forRoutes('absence-requests');
   }
 }

@@ -1,16 +1,33 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LtiModule } from './lti/lti.module';
 import * as Joi from 'joi';
+import { MongooseModule } from '@nestjs/mongoose';
+import { AbsenceRequestsModule } from './absence-requests/absence-requests.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (config_service: ConfigService) => ({
+        uri: `${config_service.get<string>(
+          'DATABASE_URI',
+        )}/${config_service.get<string>('DATABASE_API_NAME')}`,
+      }),
+      inject: [ConfigService],
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '../client'),
+    }),
     LtiModule,
     ConfigModule.forRoot({
       validationSchema: Joi.object({
-        DATABASE_NAME: Joi.string().required(),
+        DATABASE_API_NAME: Joi.string().required(),
+        DATABASE_LTIJS_NAME: Joi.string().required(),
         DATABASE_USERNAME: Joi.string().required(),
         DATABASE_PASSWORD: Joi.string().required(),
         DATABASE_PORT: Joi.number().required(),
@@ -24,6 +41,7 @@ import * as Joi from 'joi';
       }),
       isGlobal: true,
     }),
+    AbsenceRequestsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

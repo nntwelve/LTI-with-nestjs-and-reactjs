@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { Provider as lti } from 'ltijs';
 
 @Injectable()
@@ -16,7 +16,7 @@ export class LtiMiddleware implements NestMiddleware, OnModuleInit {
         url:
           this.config_service.get<string>('DATABASE_URI') +
           '/' +
-          this.config_service.get<string>('DATABASE_NAME') +
+          this.config_service.get<string>('DATABASE_LTIJS_NAME') +
           '?authSource=admin',
         connection: {
           user: this.config_service.get<string>('MONGO_USER') ?? '',
@@ -47,9 +47,9 @@ export class LtiMiddleware implements NestMiddleware, OnModuleInit {
         method: 'get',
       },
     );
-    lti.onConnect((token, req: Request, res: Response) => {
+    lti.onConnect((token, req: Request, res: Response, next: NextFunction) => {
       if (token) {
-        res.json(res.locals?.context?.custom?.role);
+        next();
       } else res.redirect('/lti/nolti');
     });
     await lti.deploy({ serverless: true });
